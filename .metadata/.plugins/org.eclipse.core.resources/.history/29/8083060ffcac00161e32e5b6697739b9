@@ -1,0 +1,166 @@
+package principal;
+
+import java.io.*;
+import java.util.Scanner;
+import java.util.Timer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+// consultas sobre matcher:
+// http://puntocomnoesunlenguaje.blogspot.com.es/2013/07/ejemplos-expresiones-regulares-java-split.html
+
+public class STLViewer {
+
+	private static int lineaN;
+	private static final String numeroVector="[-]*[\\d][.][\\d]+[[e|E][[-]|[+]][\\d]{1,2}]*";
+	private static final String etiquetaFacet="facet\\snormal\\s("+numeroVector+")\\s("+numeroVector+")\\s("+numeroVector+")(.*)endfacet$";
+	//private static final String numeroVertice="vertex\\s("+numeroVector+")\\s("+numeroVector+")\\s("+numeroVector+")";
+	//private static final String etiquetaLoop="outer\\sloop\\s"+numeroVertice+"\\s"+numeroVertice+"\\s"+numeroVertice+" endloop";
+	
+	private static final String numeroVertice="vertex\\s("+numeroVector+")\\s("+numeroVector+")\\s("+numeroVector+")";
+	private static final String etiquetaLoop="outer\\sloop\\svertex";
+	
+	
+	public static int comprobarNombreFichero(String nombreFichero) {
+       Pattern pat = Pattern.compile(".stl$");
+       Matcher mat = pat.matcher(nombreFichero);
+       if (mat.matches()) {
+    	   return 1; 	//Caso en el que el fichero tiene extensión correcta
+       } else {
+    	   return 0;    //Caso en el que el fichero no tiene extensión correcta
+       }
+	}
+	
+	public static void comprobarFormatoTriangulo(String triangulo)
+	{
+		Pattern patLoop = Pattern.compile(etiquetaLoop);
+		Pattern patFacet = Pattern.compile(etiquetaFacet);
+
+		lineaN++;
+		Matcher matFacet= patFacet.matcher(triangulo); //frase "facet normal ..."
+	    if (!matFacet.find()) 
+	    	errorDeLectura2();
+	    else
+	    {
+	    	System.out.println("Facet: "+matFacet.group(1)+" "+matFacet.group(2)+" "+matFacet.group(3) );
+	    	lineaN++;
+	    }
+	    triangulo=matFacet.group(4);
+	    System.out.println("Loop: "+triangulo);
+		Matcher matLoop = patLoop.matcher(triangulo); //frase "outer loop"
+		if (!matLoop.find()) 
+	    	errorDeLectura2();
+		/*else
+		{
+			for (int i = 2; i < 5; i++)
+				System.out.println("vertice: "+i+" "+matLoop.group(i));
+		}
+		for (int i = 2; i < 5; i++)
+		{
+			lineaN++;
+			Matcher matVertice = patVertice.matcher(triangulo); //frase "vertex ..."
+			if (!matVertice.matches()) 
+		    	errorDeLectura2();
+		}
+		lineaN++;
+		Matcher matEndLoop = patEndLoop.matcher(triangulo); //frase "endloop"
+		if (!matEndLoop.matches()) 
+	    	errorDeLectura2();
+		lineaN++;
+		Matcher matEndNormal = patEndNormal.matcher(triangulo); //frase "endfacet"
+	    if (!matEndNormal.matches()) 
+	    	errorDeLectura2();*/
+	}
+	
+	public static void errorDeLectura1()
+	{
+		System.out.println("Error en la lectura del fichero, el fichero está incompleto.\nPrograma finalizado.");
+		System.exit(0);
+	}
+	
+	public static void errorDeLectura2()
+	{
+		System.out.println("Error en la lectura del fichero, el formato de la linea "+ lineaN + " no es el adecuado.\nPrograma finalizado.");
+		System.exit(0);
+	}
+	
+	public static void leerFichero(String nombreFichero)throws IOException  
+	{
+		File fichero = new File (nombreFichero); // Crea un objeto File a partir del nombre del fichero a leer
+		FileReader fr = new FileReader(fichero); //Crea un FileReader para recorrer el fichero y recuperar el contenido
+		BufferedReader br = new BufferedReader(fr); //Crea un BufferedReader a partir del FileReader para leer por líneas el contenido.
+		StringBuffer texto=new StringBuffer();
+		String linea;
+		boolean control = true;
+		Pattern patName = Pattern.compile("^solid\\s.*");
+		Pattern patEndName = Pattern.compile("^endsolid\\s.*");
+		
+		if( (linea = br.readLine()) != null )	
+		{
+			lineaN++;
+			Matcher matName = patName.matcher(linea); //frase "solid ..."
+		       if (!matName.matches()) 
+		    	   errorDeLectura2();
+		}
+		while(control)
+		{
+			if( (linea = br.readLine()) == null )
+		    	errorDeLectura1();
+			lineaN++;
+			Matcher matEndName = patEndName.matcher(linea); //frase "endsolid ..."
+		    if (matEndName.matches()) 
+		    	control=false;
+		    else
+		    {
+		    	texto.append(linea); //añado la línea leída con readLine al buffer
+		    	for (int i = 0; i < 6; i++) {
+		    		if((linea = br.readLine()) != null)
+		    		{
+		    			texto.append(linea); //añado la línea leída con readLine al buffer
+		    		}
+		    		else
+						errorDeLectura1();
+				}
+		    	comprobarFormatoTriangulo(texto.toString());
+		    	texto.delete(0, texto.length());
+		    }
+		}
+		br.close();
+		fr.close();
+	}
+	
+	public static void main(String[] args) {
+
+		Scanner consola = new Scanner(System.in); //Crea Scanner para leer por consola
+		boolean control=true;
+		lineaN=0;
+		while(control)
+		{
+			System.out.println("Nombre del fichero a leer con extensión .stl> ");
+		    String nombreFichIn=consola.nextLine(); //lee la línea con el nombre de fichero  desde consola			
+		    //int valor=comprobarNombreFichero(nombreFichIn);
+		    int valor=1;
+			switch (valor) {
+			case 0:
+				System.out.println("Extensión del fichero incorrecta, asegurese de que tiene extensión .stl.");
+				break;
+			case 1:
+				try {
+					leerFichero(nombreFichIn);	//se intenta leer el contenido de fichero
+					control=false;			  
+				} catch (IOException e) {
+					System.out.println("***Error de lectura***\n Asegurese de que el fichero existe."+e); 
+					control=true;
+				    } 
+				break;
+			default:
+				break;
+			}	
+		    
+		}
+		
+	    
+		consola.close();
+	}
+
+}
