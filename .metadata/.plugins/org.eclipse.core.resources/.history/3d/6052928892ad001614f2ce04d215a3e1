@@ -1,0 +1,231 @@
+package principal;
+
+import java.io.*;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+// consultas sobre matcher:
+// http://puntocomnoesunlenguaje.blogspot.com.es/2013/07/ejemplos-expresiones-regulares-java-split.html
+
+public class STLViewer {
+
+	private static int trianguloN;
+	private static final String numeroVector="[-]*[\\d][.][\\d]+[[e|E][[-]|[+]][\\d]{1,2}]*";
+	private static final String etiquetaFacet="facet\\snormal\\s("+numeroVector+")\\s("+numeroVector+")\\s("+numeroVector+")(.*)endfacet$";
+	private static final String numeroVertice="vertex\\s("+numeroVector+")\\s("+numeroVector+")\\s("+numeroVector+")";
+	private static final String etiquetaLoop="outer\\sloop\\s*"+numeroVertice+"\\s*"+numeroVertice+"\\s*"+numeroVertice+"\\s*endloop";
+	
+	
+	public static boolean comprobarNombreFichero(String nombreFichero) 
+	{
+       Pattern pat = Pattern.compile(".stl$");
+       Matcher mat = pat.matcher(nombreFichero);
+       if (mat.matches()) {
+    	   return true; 	//Caso en el que el fichero tiene extensión correcta
+       } else {
+    	   return false;    //Caso en el que el fichero no tiene extensión correcta
+       }
+	}
+	
+	public static void comprobarVertices(float[] vector1,float[] vector2,float[] vector3)
+	{
+		for (int i = 0; i <3; i++) {
+			if(vector1[i]==Float.POSITIVE_INFINITY || vector1[i]==Float.NEGATIVE_INFINITY)
+				errorDeLectura3(3);
+			if(vector1[i]<0)
+			{
+				vector1[i]*=-1;
+				System.out.println("El vértice número "+i+1+" de la línea "+(trianguloN-1)*7+4+" es negativo.");
+			}
+			if(vector2[i]==Float.POSITIVE_INFINITY || vector1[i]==Float.NEGATIVE_INFINITY)
+				errorDeLectura3(4);
+			if(vector2[i]<0)
+			{
+				vector2[i]*=-1;
+				System.out.println("El vértice número "+i+1+" de la línea "+(trianguloN-1)*7+5+" es negativo.");
+			}
+			if(vector3[i]==Float.POSITIVE_INFINITY || vector1[i]==Float.NEGATIVE_INFINITY)
+				errorDeLectura3(5);
+			if(vector3[i]<0)
+			{
+				vector3[i]*=-1;
+				System.out.println("El vértice número "+i+1+" de la línea "+(trianguloN-1)*7+6+" es negativo.");
+			}
+		}
+	}
+	
+	public static double calcularNorma(float[] vector)
+	{
+		double norma=Math.pow(vector[0],2)+Math.pow(vector[1],2)+Math.pow(vector[2],2);
+		norma=Math.sqrt(norma);
+		return norma;
+	}
+	
+	public static float[] calcularVectorNormal(float[] vector1,float[] vector2,float[] vector3)
+	{
+		float[] vectorA=new float[3];
+		float[] vectorB=new float[3];
+		float[] normal=new float[3];
+		for (int i = 0; i < 3; i++)
+		{
+			vectorA[i]=vector2[i]-vector1[i];
+			vectorB[i]=vector3[i]-vector1[i];
+		}
+		normal[0]=vectorA[2]*vectorB[3]-vectorA[3]*vectorB[2];
+		normal[1]=vectorA[3]*vectorB[1]-vectorA[1]*vectorB[3];
+		normal[2]=vectorA[1]*vectorB[2]-vectorA[2]*vectorB[1];
+		double norma= calcularNorma(normal);
+		for (int i = 0; i < 3; i++)
+		{
+			normal[i]=(float)(normal[i]/norma);
+		}
+		return normal;
+	}
+	
+	
+	public static boolean comprobarVector(float[] vectorNormal,float[] vector1,float[] vector2,float[] vector3)
+	{
+		if(calcularNorma(vectorNormal)!=1)
+			System.out.println("El vector de la línea "+(trianguloN-1)*7+2+" no es unitario.");
+		
+		return true;
+	}
+	
+	public static boolean comprobarAngulo(float[] vector1,float[] vector2)
+	{
+		double angulo,escalar;
+		escalar=vector1[0]*vector2[0]+vector1[1]*vector2[1]+vector1[2]*vector2[2];
+		angulo=Math.acos(escalar);
+		if(angulo>1.0e-03)
+			return false;
+		else
+			return true;
+	}
+	
+	public static void comprobarFormatoTriangulo(String triangulo)
+	{
+		Pattern patLoop = Pattern.compile(etiquetaLoop);
+		Pattern patFacet = Pattern.compile(etiquetaFacet);
+		float[] vectorNormal=new float[3];
+		float[] vectorNormalAux=new float[3];
+		float[] vector1=new float[3];
+		float[] vector2=new float[3];
+		float[] vector3=new float[3];
+		
+		trianguloN++;
+		Matcher matFacet= patFacet.matcher(triangulo);
+	    if (!matFacet.find()) 
+	    	errorDeLectura2();
+	    System.out.println("Facet: "+matFacet.group(1)+" "+matFacet.group(2)+" "+matFacet.group(3) );    
+	    for (int i = 0; i < 3; i++) {
+			vectorNormal[i]=Float.parseFloat(matFacet.group(i+1));
+		}
+	    triangulo=matFacet.group(4);
+	    System.out.println("Loop: "+triangulo);
+		Matcher matLoop = patLoop.matcher(triangulo); 
+		if (!matLoop.find()) 
+	    	errorDeLectura2();
+		else
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				vector1[i]=Float.parseFloat(matLoop.group(i+1));
+				vector2[i]=Float.parseFloat(matLoop.group(i+4));
+				vector3[i]=Float.parseFloat(matLoop.group(i+7));
+			}
+		}
+		if(!comprobarVector(vectorNormal, vector1, vector2, vector3))
+			errorDeLectura3(3);
+		
+		vectorNormalAux=calcularVectorNormal(vector1, vector2, vector3);
+		if(!comprobarAngulo(vectorNormalAux, vectorNormal))
+			System.err.println("El vector normal de la línea "+(trianguloN-1)*7+2+" no se corresponde con el que forman los vértices.");
+	}
+	
+	public static void errorDeLectura1()
+	{
+		System.err.println("Error en la lectura del fichero, el fichero está incompleto.\nPrograma finalizado.");
+		System.exit(0);
+	}
+	
+	public static void errorDeLectura2()
+	{
+		System.err.println("Error en la lectura del fichero, el triangulo numero "+ trianguloN + " no es correcto.\nPrograma finalizado.");
+		System.exit(0);
+	}
+	
+	public static void errorDeLectura3(int linea)
+	{
+		System.err.println("Error en la lectura del fichero, el triangulo número "+ trianguloN + " en la línea "+ (trianguloN-1)*7+linea+1 +" no es correcto.\nPrograma finalizado.");
+		System.exit(0);
+	}
+	
+	public static void leerFichero(String nombreFichero)throws IOException  
+	{
+		File fichero = new File (nombreFichero); // Crea un objeto File a partir del nombre del fichero a leer
+		FileReader fr = new FileReader(fichero); //Crea un FileReader para recorrer el fichero y recuperar el contenido
+		BufferedReader br = new BufferedReader(fr); //Crea un BufferedReader a partir del FileReader para leer por líneas el contenido.
+		StringBuffer texto=new StringBuffer();
+		String linea;
+		boolean control = true;
+		Pattern patName = Pattern.compile("^solid\\s.*");
+		Pattern patEndName = Pattern.compile("^endsolid\\s.*");
+		
+		if( (linea = br.readLine()) != null )	
+		{
+			Matcher matName = patName.matcher(linea); //frase "solid ..."
+		       if (!matName.matches()) 
+		    	   errorDeLectura2();
+		}
+		while(control)
+		{
+			if( (linea = br.readLine()) == null )
+		    	errorDeLectura1();
+			Matcher matEndName = patEndName.matcher(linea); //frase "endsolid ..."
+		    if (matEndName.matches()) 
+		    	control=false;
+		    else
+		    {
+		    	texto.append(linea); //añado la línea leída con readLine al buffer
+		    	for (int i = 0; i < 6; i++) {
+		    		if((linea = br.readLine()) != null)
+		    		{
+		    			texto.append(linea); //añado la línea leída con readLine al buffer
+		    		}
+		    		else
+						errorDeLectura1();
+				}
+		    	comprobarFormatoTriangulo(texto.toString());
+		    	texto.delete(0, texto.length());
+		    }
+		}
+		br.close();
+		fr.close();
+	}
+	
+	public static void main(String[] args) {
+
+		Scanner consola = new Scanner(System.in); //Crea Scanner para leer por consola
+		boolean control=true;
+		trianguloN=0;
+		while(control)
+		{
+			System.out.println("Nombre del fichero a leer con extensión .stl> ");
+		    String nombreFich=consola.nextLine(); //lee la línea con el nombre de fichero  desde consola			
+			if(comprobarNombreFichero(nombreFich))
+				System.out.println("Extensión del fichero incorrecta, asegurese de que tiene extensión .stl.");
+			else 
+			{
+				try {
+					leerFichero(nombreFich);	//se intenta leer el contenido de fichero
+					control=false;			  
+				} catch (IOException e) {
+					System.out.println("***Error de lectura***\n Asegurese de que el fichero existe."+e); 
+					control=true;
+				    } 	
+			}
+		}
+		consola.close();
+	}
+}

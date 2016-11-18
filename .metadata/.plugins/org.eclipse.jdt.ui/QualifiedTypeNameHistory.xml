@@ -3,4 +3,8 @@
 <fullyQualifiedTypeName name="java.util.Timer"/>
 <fullyQualifiedTypeName name="java.lang.Float"/>
 <fullyQualifiedTypeName name="java.lang.Math"/>
+<fullyQualifiedTypeName name="javax.xml.ws.FaultAction"/>
+<fullyQualifiedTypeName name="auxiliar.FacetList"/>
+<fullyQualifiedTypeName name="auxiliar.Facet"/>
+<fullyQualifiedTypeName name="auxiliar.J3DViewer"/>
 </qualifiedTypeNameHistroy>
