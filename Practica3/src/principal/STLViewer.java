@@ -9,18 +9,28 @@ import auxiliar.*;
 
 // consultas sobre matcher:
 // http://puntocomnoesunlenguaje.blogspot.com.es/2013/07/ejemplos-expresiones-regulares-java-split.html
-//Comprobar expresiones regulares: http://www.regexper.com/ 
+// Comprobar expresiones regulares: http://www.regexper.com/ 
 
 public class STLViewer {
 
 	private static int trianguloN;
 	private static FacetList facetlist;
+	//Es demasiado general, pero funciona para salir del paso una mejor sería esta:
+	//"^-?\\d\\.\\d+([eE][-+]\\d{1,2})?"
+	//pero los parentesis dan problemas ya que Eclipse los interpreta como grupos y estaríamos definiendo un grupo dentro de otro grupo
+	//lo que creo que no esta permitido.
 	private static final String numeroVector="[-]*[\\d]\\.[\\d]+[[e|E][[-]|[+]][\\d]{1,2}]*";
 	private static final String etiquetaFacet="facet\\snormal\\s("+numeroVector+")\\s("+numeroVector+")\\s("+numeroVector+")(.*)\\sendfacet$";
 	private static final String numeroVertice="vertex\\s("+numeroVector+")\\s("+numeroVector+")\\s("+numeroVector+")";
 	private static final String etiquetaLoop="outer\\sloop\\s*"+numeroVertice+"\\s*"+numeroVertice+"\\s*"+numeroVertice+"\\s*endloop";
 	
-	
+	/**
+	 * Crea una nueva clase Facet, la inicializa con los vectores introducidos, y la añade a la FacetLiast.
+	 * @param vectorNormal vector normal del triángulo.
+	 * @param vector1 primer vector  del triángulo.
+	 * @param vector2 segundo vector  del triángulo.
+	 * @param vector3 tercer vector  del triángulo.
+	 */
 	public static void añadirFacet(float[] vectorNormal,float[] vector1,float[] vector2,float[] vector3)
 	{
 		Facet facet=new Facet();
@@ -31,9 +41,14 @@ public class STLViewer {
 		facetlist.add(facet);
 	}
 	
+	/**
+	 * Comprueba que la extensión del nombre del fichero sea la correcta.
+	 * @param nombreFichero nombre que se desea comprobar.
+	 * @return true si tiene extensión .stl, false en caso contrario.
+	 */
 	public static boolean comprobarNombreFichero(String nombreFichero) 
 	{
-       Pattern pat = Pattern.compile("[.]stl$");
+       Pattern pat = Pattern.compile("\\.stl$");
        Matcher mat = pat.matcher(nombreFichero);
        if (mat.find()) 
     	   return true; 	//Caso en el que el fichero tiene extensión correcta
@@ -41,6 +56,12 @@ public class STLViewer {
     	   return false;    //Caso en el que el fichero no tiene extensión correcta
 	}
 	
+	/**
+	 * Comprueba que los números que forman los vertices sean distintos de infinito y positivos.
+	 * @param vector1 primer vector  del triángulo.
+	 * @param vector2 segundo vector  del triángulo.
+	 * @param vector3 tercer vector  del triángulo.
+	 */
 	public static void comprobarVertices(float[] vector1,float[] vector2,float[] vector3)
 	{
 		for (int i = 0; i <3; i++) {
@@ -68,6 +89,11 @@ public class STLViewer {
 		}
 	}
 	
+	/**
+	 * Calcula la norma del vector introducido.
+	 * @param vector 
+	 * @return norma del vector
+	 */
 	public static double calcularNorma(float[] vector)
 	{
 		double norma=Math.pow(vector[0],2)+Math.pow(vector[1],2)+Math.pow(vector[2],2);
@@ -75,6 +101,13 @@ public class STLViewer {
 		return norma;
 	}
 	
+	/**
+	 * Calcula el vector normal del triángulo formado por tres vértices.
+	 * @param vector1primer vector  del triángulo.
+	 * @param vector2 segundo vector  del triángulo.
+	 * @param vector3 tercer vector  del triángulo.
+	 * @return vector normal del triángulo
+	 */
 	public static float[] calcularVectorNormal(float[] vector1,float[] vector2,float[] vector3)
 	{
 		float[] vectorA=new float[3];
@@ -90,20 +123,16 @@ public class STLViewer {
 		normal[2]=vectorA[0]*vectorB[1]-vectorA[1]*vectorB[0];
 		double norma= calcularNorma(normal);
 		for (int i = 0; i < 3; i++)
-		{
 			normal[i]=(float)(normal[i]/norma);
-		}
 		return normal;
 	}
 	
-	
-	public static boolean comprobarVector(float[] vectorNormal,float[] vector1,float[] vector2,float[] vector3)
-	{
-		if(calcularNorma(vectorNormal)!=1)
-			System.out.println("El vector de la línea "+(trianguloN-1)*7+2+" no es unitario.");
-		return true;
-	}
-	
+	/**
+	 * Comprueba que el ángulo formado por los dos vectores introducidos no difiera de 1.0e-03.
+	 * @param vector1
+	 * @param vector2
+	 * @return true si el angulo formado es menor que 1.0e-03, flase en caso contrario.
+	 */
 	public static boolean comprobarAngulo(float[] vector1,float[] vector2)
 	{
 		double angulo,escalar;
@@ -115,6 +144,13 @@ public class STLViewer {
 			return true;
 	}
 	
+	/**
+	 * Comprueba que el triángulo introducido cumpla las condiciones exigidas.
+	 * Extrae los vectores y los vertices introducidos, los transforma en floats, comprueba que sean correctos, en el caso de que
+	 * haya algún error en los datos introducidos los cambia por los datos calculados. Por último añade el triángulo a un Facet para 
+	 * que sea añadido a la FacetList.
+	 * @param triangulo cadena de texto leida del fichero que contiene la información relativa a un único triángulo.
+	 */
 	public static void comprobarFormatoTriangulo(String triangulo)
 	{
 		Pattern patLoop = Pattern.compile(etiquetaLoop);
@@ -129,7 +165,7 @@ public class STLViewer {
 		Matcher matFacet= patFacet.matcher(triangulo);
 	    if (!matFacet.find()) 
 	    	errorDeLectura2();
-	    System.out.println("Vector normal insertado: "+matFacet.group(1)+" "+matFacet.group(2)+" "+matFacet.group(3) );    
+	    //System.out.println("Vector normal insertado: "+matFacet.group(1)+" "+matFacet.group(2)+" "+matFacet.group(3) );    
 	    for (int i = 0; i < 3; i++) {
 			vectorNormal[i]=Float.parseFloat(matFacet.group(i+1));
 		}
@@ -147,11 +183,11 @@ public class STLViewer {
 			}
 		}
 		comprobarVertices(vector1, vector2, vector3);
-		System.out.println("vector1 insertado: "+vector1[0]+" "+vector1[1]+" "+vector1[2] );
-		System.out.println("vector2 insertado: "+vector2[0]+" "+vector2[1]+" "+vector2[2] );
-		System.out.println("vector3 insertado: "+vector3[0]+" "+vector3[1]+" "+vector3[2] );
+		//System.out.println("vector1 insertado: "+vector1[0]+" "+vector1[1]+" "+vector1[2] );
+		//System.out.println("vector2 insertado: "+vector2[0]+" "+vector2[1]+" "+vector2[2] );
+		//System.out.println("vector3 insertado: "+vector3[0]+" "+vector3[1]+" "+vector3[2] );
 		double norma=calcularNorma(vectorNormal);
-		System.out.println("Norma= "+norma);
+		//System.out.println("Norma= "+norma);
 		boolean error=false;
 		if(((norma-1.0)>1.0e-06)||((norma-1.0)<-1.0e-06))
 		{
@@ -161,7 +197,7 @@ public class STLViewer {
 		else
 		{
 			vectorNormalAux=calcularVectorNormal(vector1, vector2, vector3);
-			System.out.println("vector normal calculado: "+vectorNormalAux[0]+" "+vectorNormalAux[1]+" "+vectorNormalAux[2] );
+			//System.out.println("vector normal calculado: "+vectorNormalAux[0]+" "+vectorNormalAux[1]+" "+vectorNormalAux[2] );
 			if(!comprobarAngulo(vectorNormalAux, vectorNormal))
 			{
 				System.err.println("El vector normal de la línea "+((trianguloN-1)*7+2)+" no se corresponde con el que forman los vértices.");
@@ -173,12 +209,18 @@ public class STLViewer {
 		añadirFacet(vectorNormal, vector1, vector2, vector3);
 	}
 	
+	/**
+	 * Salida de error: caso en el que el fichero está incompleto y le faltan líneas.
+	 */
 	public static void errorDeLectura1()
 	{
 		System.err.println("Error en la lectura del fichero, el fichero está incompleto.\nPrograma finalizado.");
 		System.exit(0);
 	}
 	
+	/**
+	 * Salida de error: caso en el que el fichero contiene algún triángulo incompleto o con está escrtito con una sintaxis incorrecta.
+	 */
 	public static void errorDeLectura2()
 	{
 		System.err.println("Error en la lectura del fichero, el formato del triángulo número "+ trianguloN + " no es correcto.\n"+
@@ -186,12 +228,21 @@ public class STLViewer {
 		System.exit(0);
 	}
 	
+	/**
+	 * Salida de error: caso en el que el fichero contiene algún triángulo incorrecto.
+	 * @param linea en la que se ha producido el error.
+	 */
 	public static void errorDeLectura3(int linea)
 	{
 		System.err.println("Error en la lectura del fichero, el triangulo número "+ trianguloN + " en la línea "+ ((trianguloN-1)*7+linea+1) +" no es correcto.\nPrograma finalizado.");
 		System.exit(0);
 	}
 	
+	/**
+	 * Lee línea a línea el fichero y va pasandole a la función comprobarFormatoTriangulo un String con las siete líneas que componen un triángulo.
+	 * @param nombreFichero fichero que se desea leer.
+	 * @throws IOException error al abrir el fichero.
+	 */
 	public static void leerFichero(String nombreFichero)throws IOException  
 	{
 		File fichero = new File (nombreFichero); // Crea un objeto File a partir del nombre del fichero a leer
@@ -199,7 +250,7 @@ public class STLViewer {
 		BufferedReader br = new BufferedReader(fr); //Crea un BufferedReader a partir del FileReader para leer por líneas el contenido.
 		StringBuffer texto=new StringBuffer();
 		String linea;
-		boolean control = true;
+		boolean finDeFichero = false;
 		Pattern patName = Pattern.compile("^\\s*solid\\s.*");
 		Pattern patEndName = Pattern.compile("^\\s*endsolid\\s.*");
 		
@@ -209,13 +260,13 @@ public class STLViewer {
 		       if (!matName.matches()) 
 		    	   errorDeLectura2();
 		}
-		while(control)
+		while(!finDeFichero)
 		{
 			if( (linea = br.readLine()) == null )
 		    	errorDeLectura1();
 			Matcher matEndName = patEndName.matcher(linea); //frase "endsolid ..."
 		    if (matEndName.find()) 
-		    	control=false;
+		    	finDeFichero=true;
 		    else
 		    {
 		    	texto.append(linea); //añado la línea leída con readLine al buffer
@@ -248,14 +299,14 @@ public class STLViewer {
 		    if(matName.find())
 				System.exit(0);
 		    if(!comprobarNombreFichero(nombreFich))
-				System.out.println("Extensión del fichero incorrecta, asegurese de que tiene extensión .stl.");
+				System.err.println("Extensión del fichero incorrecta, asegurese de que tiene extensión .stl.");
 			else 
 			{
 				try {
 					leerFichero(nombreFich);	//se intenta leer el contenido de fichero
 					control=false;			  
 				} catch (IOException e) {
-					System.out.println("***Error de lectura***\n Asegurese de que el fichero existe."); 
+					System.err.println("***Error de lectura***\n Asegurese de que el fichero existe."); 
 					control=true;
 				    } 	
 			}
