@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import auxiliar.*;
 
 // consultas sobre matcher:
@@ -15,11 +14,7 @@ public class STLViewer {
 
 	private static int trianguloN;
 	private static FacetList facetlist;
-	//Es demasiado general, pero funciona para salir del paso una mejor sería esta:
-	//"^-?\\d\\.\\d+([eE][-+]\\d{1,2})?"
-	//pero los parentesis dan problemas ya que Eclipse los interpreta como grupos y estaríamos definiendo un grupo dentro de otro grupo
-	//lo que creo que no esta permitido.
-	private static final String numeroVector="[-]*[\\d]\\.[\\d]+[[e|E][[-]|[+]][\\d]{1,2}]*";
+	private static final String numeroVector="-?\\d\\.\\d+([eE][-+]\\d{1,2})?";
 	private static final String etiquetaFacet="facet\\snormal\\s("+numeroVector+")\\s("+numeroVector+")\\s("+numeroVector+")(.*)\\sendfacet$";
 	private static final String numeroVertice="vertex\\s("+numeroVector+")\\s("+numeroVector+")\\s("+numeroVector+")";
 	private static final String etiquetaLoop="outer\\sloop\\s*"+numeroVertice+"\\s*"+numeroVertice+"\\s*"+numeroVertice+"\\s*endloop";
@@ -167,9 +162,9 @@ public class STLViewer {
 	    	errorDeLectura2();
 	    //System.out.println("Vector normal insertado: "+matFacet.group(1)+" "+matFacet.group(2)+" "+matFacet.group(3) );    
 	    for (int i = 0; i < 3; i++) {
-			vectorNormal[i]=Float.parseFloat(matFacet.group(i+1));
+			vectorNormal[i]=Float.parseFloat(matFacet.group(i*2+1));
 		}
-	    triangulo=matFacet.group(4);
+	    triangulo=matFacet.group(7);
 		Matcher matLoop = patLoop.matcher(triangulo); 
 		if (!matLoop.find()) 
 	    	errorDeLectura2();
@@ -177,9 +172,9 @@ public class STLViewer {
 		{
 			for (int i = 0; i < 3; i++)
 			{
-				vector1[i]=Float.parseFloat(matLoop.group(i+1));
-				vector2[i]=Float.parseFloat(matLoop.group(i+4));
-				vector3[i]=Float.parseFloat(matLoop.group(i+7));
+				vector1[i]=Float.parseFloat(matLoop.group(2*i+1));
+				vector2[i]=Float.parseFloat(matLoop.group(2*i+7));
+				vector3[i]=Float.parseFloat(matLoop.group(2*i+13));
 			}
 		}
 		comprobarVertices(vector1, vector2, vector3);
@@ -313,6 +308,6 @@ public class STLViewer {
 		}
 		consola.close();
 		//facetlist.setUseFileNormals(false);
-		//J3DViewer.display(facetlist, 500, 500);
+		J3DViewer.display(facetlist, 500, 500);
 	}
 }

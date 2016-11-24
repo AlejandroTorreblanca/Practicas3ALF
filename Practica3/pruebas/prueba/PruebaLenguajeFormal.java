@@ -16,7 +16,7 @@ public class PruebaLenguajeFormal {
 			System.out.println("Escriba la Palabra:  ");
 		    String palabra=consola.nextLine(); //lee la línea con el nombre de fichero  desde consola			
 
-		Pattern patNormal = Pattern.compile("^-?\\d\\.\\d+([eE][-+]\\d{1,2})?");
+		Pattern patNormal = Pattern.compile("-?\\d\\.[\\d]+[[e|E][[-]|[+]][\\d]{1,2}]*");
 		
 		Matcher matNormal = patNormal.matcher(palabra); //frase "facet normal ..."
 	    if (matNormal.matches()) 

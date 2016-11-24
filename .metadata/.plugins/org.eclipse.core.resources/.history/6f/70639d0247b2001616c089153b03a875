@@ -1,0 +1,78 @@
+
+package practica2;
+
+import java.io.*;
+import java.util.Scanner;
+import clasesAfd.*;
+
+public class Ejercicio2 {
+
+	private static Scanner sc;
+	public static boolean esValida(Afd automata, String cadena)
+	{
+		automata.reset();
+		char caracter;
+		if(cadena==null)
+		{
+			System.out.println("**Cadena "+ (i+1) + " rechazada.**");
+
+		}
+		String estado,estadoSiguiente;
+		for (int i = 0; i < cadena.length(); i++) {
+			caracter=cadena.charAt(i);
+			estado=automata.getEstadoActual();
+			estadoSiguiente =automata.transicion(estado, caracter);
+			if (estadoSiguiente!=null)
+			{
+				automata.setEstadoActual(estadoSiguiente);
+			}
+			else
+				return false;
+		}
+		estado=automata.getEstadoActual();
+		if(automata.esFinal(estado))
+			return true;
+		else
+			return false;
+
+	}
+	public static void main(String[] args) 
+	{
+		sc = new Scanner(System.in);
+		boolean valida=false;
+		Afd afd=null;
+		while (!valida) 
+		{
+			System.out.println("Introduzca el nombre del fichero jflap (.jff) incluyendo la extensión");
+			String nombreFichero =sc.nextLine();
+			System.out.println("el nombre del archivo es: "+ nombreFichero);//comprobacion de que lee bien
+			try {
+				afd=new Afd(nombreFichero);
+				valida=true;
+			} catch (IOException e) {
+				System.out.println("Nombre de archivo incorrecto.");
+				valida=false;
+			}
+		}
+		System.out.println("Introduzca la secuencia de cadenas separadas por el carácter ';'.");
+		String cadena =sc.nextLine();
+		String[] array=cadena.split(";");
+		int i=0;
+		if( array==null)
+		{
+			if(esValida(afd,cadena))
+				System.out.println("**Cadena "+ (i+1) + " aceptada.**");
+			else
+				System.out.println("**Cadena "+ (i+1) + " rechazada.**");
+		}
+		else
+			while(array[i]!=null)
+			{
+				if(esValida(afd,array[i]))
+					System.out.println("**Cadena "+ (i+1) + " aceptada.**");
+				else
+					System.out.println("**Cadena "+ (i+1) + " rechazada.**");
+				i++;
+			}
+	}
+}
