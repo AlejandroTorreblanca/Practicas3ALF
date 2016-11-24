@@ -9,6 +9,7 @@ import auxiliar.*;
 // consultas sobre matcher:
 // http://puntocomnoesunlenguaje.blogspot.com.es/2013/07/ejemplos-expresiones-regulares-java-split.html
 // Comprobar expresiones regulares: http://www.regexper.com/ 
+//ASDasdasddasasdasdssadasdsdadassdadassd
 
 public class STLViewer {
 
