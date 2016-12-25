@@ -6,25 +6,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import auxiliar.*;
 
-// consultas sobre matcher:
-// http://puntocomnoesunlenguaje.blogspot.com.es/2013/07/ejemplos-expresiones-regulares-java-split.html
-// Comprobar expresiones regulares: http://www.regexper.com/ 
-//ASDasdasddasasdasdssadasdsdadassdadassd
-
 public class STLViewer {
 
 	private static int trianguloN;
 	private static FacetList facetlist;
 	private static final String numeroVector="-?\\d\\.\\d{1,7}([eE][-+]\\d{1,2})?";
 	private static final String etiquetaFacet="(?s)[ \\t]*facet normal +("+numeroVector+") +("+numeroVector+") +("+numeroVector+")(.*?)[ \\t]*endfacet$";
-	
 	private static final String numeroVertice="[ \\t]*vertex +("+numeroVector+") +("+numeroVector+") +("+numeroVector+")";
 	private static final String etiquetaLoop="[ \\t]*outer loop +"+numeroVertice+" +"+numeroVertice+" +"+numeroVertice+"[ \\t]*endloop$";
-	
-	//etiquetaFacet="(?s)[ \\t]*facet normal ("+numeroVector+") ("+numeroVector+") ("+numeroVector+")(.*?)[ \\t]*endfacet$";
-	//etiquetaFacet="(?s)[\\t ]*facet normal (-?\\d\\.\\d{1,7}([eE][-+]\\d{1,2})?)  (-?\\d\\.\\d{1,7}([eE][-+]\\d{1,2})?) (-?\\d\\.\\d{1,7}([eE][+-]\\d{1,2})?)(.*?)[\\t ]*endfacet$";
-	//etiquetaLoop="[ \\t]*outer\\sloop\\s*"+numeroVertice+"\\s*"+numeroVertice+"\\s*"+numeroVertice+"\\s*endloop";
-	//etiquetaLoop="[ \\t]*outer loop\\s"+numeroVertice+"\\s"+numeroVertice+"\\s"+numeroVertice+"\\s[ \\t]*endloop";
 	
 	/**
 	 * Crea un nuevo objeto Facet, la inicializa con los vectores introducidos, y lo añade a la FacetLiast.
@@ -154,7 +143,6 @@ public class STLViewer {
 		float[] vector2=new float[3];
 		float[] vector3=new float[3];
 		
-		//System.out.println(triangulo);
 		trianguloN++;
 		Matcher matFacet= patFacet.matcher(triangulo);
 	    if (!matFacet.matches()) 
@@ -163,12 +151,10 @@ public class STLViewer {
 	    	errorDeLectura2();
 	    }
 	    	
-	    //System.out.println("Vector normal insertado: "+matFacet.group(1)+" "+matFacet.group(2)+" "+matFacet.group(3) );    
 	    for (int i = 0; i < 3; i++) {
 			vectorNormal[i]=Float.parseFloat(matFacet.group(i*2+1));
 		}
 	    triangulo=matFacet.group(7);
-	    //System.out.println(triangulo);
 		Matcher matLoop = patLoop.matcher(triangulo); 
 		if (!matLoop.matches()) 
 		{
@@ -185,11 +171,7 @@ public class STLViewer {
 			}
 		}
 		comprobarVertices(vector1, vector2, vector3);
-		//System.out.println("vector1 insertado: "+vector1[0]+" "+vector1[1]+" "+vector1[2] );
-		//System.out.println("vector2 insertado: "+vector2[0]+" "+vector2[1]+" "+vector2[2] );
-		//System.out.println("vector3 insertado: "+vector3[0]+" "+vector3[1]+" "+vector3[2] );
 		double norma=calcularNorma(vectorNormal);
-		//System.out.println("Norma= "+norma);
 		boolean error=false;
 		if(((norma-1.0)>1.0e-06)||((norma-1.0)<-1.0e-06))
 		{
@@ -199,7 +181,6 @@ public class STLViewer {
 		else
 		{
 			vectorNormalAux=calcularVectorNormal(vector1, vector2, vector3);
-			//System.out.println("vector normal calculado: "+vectorNormalAux[0]+" "+vectorNormalAux[1]+" "+vectorNormalAux[2] );
 			if(!comprobarAngulo(vectorNormalAux, vectorNormal))
 			{
 				System.err.println("Línea "+((trianguloN-1)*7+2)+": El vector normal no se corresponde con el que forman los vértices.");
@@ -269,7 +250,6 @@ public class STLViewer {
 		{
 			if( (linea = br.readLine()) == null )
 		    	errorDeLectura1();
-			System.out.println(linea);
 			Matcher matEndName = patEndName.matcher(linea); //frase "endsolid ..."
 		    if (matEndName.matches()) 
 		    	finDeFichero=true;
