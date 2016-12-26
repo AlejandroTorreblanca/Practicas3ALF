@@ -10,17 +10,18 @@ public class STLViewer {
 
 	private static int trianguloN;
 	private static FacetList facetlist;
-	private static final String numeroVector="-?\\d\\.\\d{1,7}([eE][-+]\\d{1,2})?";
+	private static final String numeroVector="-?\\d\\.\\d{1,7}([eE](?:\\+\\d{1,2}|-(?:\\d[1-9]|[1-9]\\d)))?";
 	private static final String etiquetaFacet="(?s)[ \\t]*facet normal +("+numeroVector+") +("+numeroVector+") +("+numeroVector+")(.*?)[ \\t]*endfacet$";
 	private static final String numeroVertice="[ \\t]*vertex +("+numeroVector+") +("+numeroVector+") +("+numeroVector+")";
 	private static final String etiquetaLoop="[ \\t]*outer loop +"+numeroVertice+" +"+numeroVertice+" +"+numeroVertice+"[ \\t]*endloop$";
 	
+
 	/**
 	 * Crea un nuevo objeto Facet, la inicializa con los vectores introducidos, y lo añade a la FacetLiast.
-	 * @param vectorNormal vector normal del triángulo.
-	 * @param vector1 primer vector  del triángulo.
-	 * @param vector2 segundo vector  del triángulo.
-	 * @param vector3 tercer vector  del triángulo.
+	 * @param vectorNormal Vector normal del triángulo.
+	 * @param vector1 Primer vector (vértice) del triángulo.
+	 * @param vector2 Segundo vector (vértice) del triángulo.
+	 * @param vector3 Tercer vector (vértice) del triángulo.
 	 */
 	public static void añadirFacet(float[] vectorNormal,float[] vector1,float[] vector2,float[] vector3)
 	{
@@ -34,8 +35,8 @@ public class STLViewer {
 	
 	/**
 	 * Comprueba que la extensión del nombre del fichero sea la correcta.
-	 * @param nombreFichero nombre que se desea comprobar.
-	 * @return true si tiene extensión .stl, false en caso contrario.
+	 * @param nombreFichero Nombre que se desea comprobar.
+	 * @return true Si tiene extensión .stl, false en caso contrario.
 	 */
 	public static boolean comprobarNombreFichero(String nombreFichero) 
 	{
@@ -49,9 +50,9 @@ public class STLViewer {
 	
 	/**
 	 * Comprueba que los números que forman los vertices sean distintos de infinito y positivos.
-	 * @param vector1 primer vector  del triángulo.
-	 * @param vector2 segundo vector  del triángulo.
-	 * @param vector3 tercer vector  del triángulo.
+	 * @param vector1 Primer vector (vértice) del triángulo.
+	 * @param vector2 Segundo vector (vértice) del triángulo.
+	 * @param vector3 Tercer vector (vértice) del triángulo.
 	 */
 	public static void comprobarVertices(float[] vector1,float[] vector2,float[] vector3)
 	{
@@ -73,8 +74,8 @@ public class STLViewer {
 	
 	/**
 	 * Calcula la norma del vector introducido.
-	 * @param vector 
-	 * @return norma del vector
+	 * @param vector Vector al que le queremos calcular la norma.
+	 * @return Norma del vector.
 	 */
 	public static double calcularNorma(float[] vector)
 	{
@@ -85,10 +86,10 @@ public class STLViewer {
 	
 	/**
 	 * Calcula el vector normal del triángulo formado por tres vértices.
-	 * @param vector1primer vector  del triángulo.
-	 * @param vector2 segundo vector  del triángulo.
-	 * @param vector3 tercer vector  del triángulo.
-	 * @return vector normal del triángulo
+	 * @param vector1 Primer vector (vértice) del triángulo.
+	 * @param vector2 Segundo vector (vértice) del triángulo.
+	 * @param vector3 Tercer vector (vértice) del triángulo.
+	 * @return Vector normal del triángulo
 	 */
 	public static float[] calcularVectorNormal(float[] vector1,float[] vector2,float[] vector3)
 	{
@@ -111,9 +112,9 @@ public class STLViewer {
 	
 	/**
 	 * Comprueba que el ángulo formado por los dos vectores introducidos no difiera de 1.0e-03.
-	 * @param vector1
-	 * @param vector2
-	 * @return true si el angulo formado es menor que 1.0e-03, flase en caso contrario.
+	 * @param vector1 Primer vector.
+	 * @param vector2 Segundo vector.
+	 * @return True si el angulo formado es menor que 1.0e-03, false en caso contrario.
 	 */
 	public static boolean comprobarAngulo(float[] vector1,float[] vector2)
 	{
@@ -131,7 +132,7 @@ public class STLViewer {
 	 * Extrae los vectores y los vertices introducidos, los transforma en floats, comprueba que sean correctos, en el caso de que
 	 * haya algún error en los datos introducidos los cambia por los datos calculados. Por último añade el triángulo a un Facet para 
 	 * que sea añadido a la FacetList.
-	 * @param triangulo cadena de texto leida del fichero que contiene la información relativa a un único triángulo.
+	 * @param triangulo Cadena de texto leida del fichero que contiene la información relativa a un único triángulo.
 	 */
 	public static void comprobarFormatoTriangulo(String triangulo)
 	{
@@ -223,9 +224,10 @@ public class STLViewer {
 	}
 	
 	/**
-	 * Lee línea a línea el fichero y va pasandole a la función comprobarFormatoTriangulo un String con las siete líneas que componen un triángulo.
-	 * @param nombreFichero fichero que se desea leer.
-	 * @throws IOException error al abrir el fichero.
+	 * Lee línea a línea el fichero y va pasándole a la función comprobarFormatoTriangulo un String con las siete líneas que 
+	 * componen un triángulo para ir analizando el fichero.
+	 * @param nombreFichero Fichero que se desea leer.
+	 * @throws IOException Error al abrir el fichero.
 	 */
 	public static void leerFichero(String nombreFichero)throws IOException  
 	{
